@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <title>Comanda Sopar AFA</title>
+  <style>
+    body { font-family: sans-serif; max-width: 700px; margin: 30px auto; }
+    label { display: block; margin-top: 12px; font-weight: bold; }
+    select, input, textarea { width: 100%; padding: 5px; margin-top: 5px; }
+    .total { font-size: 20px; margin-top: 20px; font-weight: bold; }
+    button { margin-top: 20px; padding: 10px 20px; font-size: 16px; }
+  </style>
+</head>
+<body>
+
+  <h1>Comanda Sopar AFA</h1>
+
+  <label>Nom de la família *</label>
+  <input type="text" id="familia" required>
+
+  <label>Classe *</label>
+  <select id="classe">
+    <option>Infantil 3</option>
+    <option>Infantil 4</option>
+    <option>Infantil 5</option>
+    <option>Primaria 1r</option>
+    <option>Primaria 2n</option>
+    <option>Primaria 3r</option>
+    <option>Primaria 4t</option>
+    <option>Primaria 5e</option>
+    <option>Primaria 6e</option>
+  </select>
+
+  <label>Entrepans + Beguda + Gelat (10€)</label>
+  <div id="entrepans"></div>
+
+  <label>Biquini o Mig Entrepà + Beguda + Gelat (7€)</label>
+  <div id="migEntrepans"></div>
+
+  <label>Observacions / Contacte</label>
+  <textarea id="observacions"></textarea>
+
+  <div class="total" id="total">Total: 0€</div>
+
+  <button onclick="enviarComanda()">Enviar comanda</button>
+
+  <script>
+    const opcionsEntrepans = ['-', 'Llonganissa', 'Llom', 'Bacon', 'Truita', 'Formatge', 'Fuet'];
+    const opcionsMig = ['-', 'Llonganissa', 'Llom', 'Bacon', 'Truita', 'Formatge', 'Fuet', 'Biquini'];
+
+    function crearSelect(idPrefix, num, opcions) {
+      const div = document.getElementById(idPrefix);
+      for (let i = 1; i <= num; i++) {
+        const select = document.createElement("select");
+        select.id = idPrefix + i;
+        opcions.forEach(opcio => {
+          const opt = document.createElement("option");
+          opt.value = opcio;
+          opt.innerText = opcio;
+          select.appendChild(opt);
+        });
+        select.addEventListener("change", calcularTotal);
+        div.appendChild(document.createTextNode(`Persona ${i}`));
+        div.appendChild(select);
+        div.appendChild(document.createElement("br"));
+      }
+    }
+
+    crearSelect("entrepans", 10, opcionsEntrepans);
+    crearSelect("migEntrepans", 10, opcionsMig);
+
+    function calcularTotal() {
+      let total = 0;
+      for (let i = 1; i <= 10; i++) {
+        if (document.getElementById("entrepans" + i).value !== "-") total += 10;
+        if (document.getElementById("migEntrepans" + i).value !== "-") total += 7;
+      }
+      document.getElementById("total").innerText = `Total: ${total}€`;
+    }
+
+    function enviarComanda() {
+      const familia = document.getElementById("familia").value.trim();
+      const classe = document.getElementById("classe").value;
+      const observacions = document.getElementById("observacions").value;
+      if (!familia) { alert("Cal posar el nom de la família."); return; }
+
+      const comandaEntrepans = [];
+      const comandaMig = [];
+      for (let i = 1; i <= 10; i++) {
+        comandaEntrepans.push(document.getElementById("entrepans" + i).value);
+        comandaMig.push(document.getElementById("migEntrepans" + i).value);
+      }
+      const totalText = document.getElementById("total").innerText;
+
+      const dades = {
+        familia,
+        classe,
+        entrepans: comandaEntrepans.join(", "),
+        migEntrepans: comandaMig.join(", "),
+        total: totalText,
+        observacions
+      };
+
+      fetch("ENLLAÇ_DEL_TEU_WEBAPP", {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dades)
+      });
+
+      alert("Comanda enviada correctament!");
+      location.reload();
+    }
+  </script>
+
+</body>
+</html>
